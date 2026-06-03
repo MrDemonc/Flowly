@@ -60,7 +60,7 @@ fun RecipesScreen(
     app: FlowlyApp,
     navController: NavController,
     viewModel: RecipesViewModel = viewModel(
-        factory = RecipesViewModel.Factory(app.recipeRepository)
+        factory = RecipesViewModel.Factory(app.recipeRepository, app.calculateRecipeCostUseCase)
     )
 ) {
     val state by viewModel.state.collectAsState()
@@ -125,6 +125,7 @@ fun RecipesScreen(
                             RecipeCard(
                                 position = sectionPositionFromIndex(index, state.recipes.size),
                                 recipe = recipe,
+                                totalCost = state.costs[recipe.id],
                                 onClick = {
                                     navController.navigate(Screen.RecipeDetail.createRoute(recipe.id))
                                 },
@@ -164,6 +165,7 @@ fun RecipesScreen(
 private fun RecipeCard(
     recipe: RecipeEntity,
     position: SectionPosition,
+    totalCost: Double?,
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -171,40 +173,39 @@ private fun RecipeCard(
         position = position,
         onClick = onClick,
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = recipe.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(1f)
+                    fontWeight = FontWeight.Medium
                 )
-                TextButton(onClick = onDelete) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
                 Text(
                     text = "${recipe.servings} porciones",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "${CurrencySymbol.current} ${formatNumber(recipe.salePrice)}",
+                    text = "Venta: ${CurrencySymbol.current} ${formatNumber(recipe.salePrice)}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
+                if (totalCost != null) {
+                    Text(
+                        text = "Costo: ${CurrencySymbol.current} ${formatNumber(totalCost)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+            TextButton(onClick = onDelete) {
+                Text("Eliminar", color = MaterialTheme.colorScheme.error)
             }
         }
     }

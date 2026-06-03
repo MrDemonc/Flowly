@@ -27,7 +27,7 @@ interface ProductionDao {
     suspend fun delete(production: ProductionEntity)
 
     @Query("""
-        SELECT p.*, r.name AS recipeName 
+        SELECT p.*, r.name AS recipeName, r.servings AS recipeServings
         FROM productions p 
         INNER JOIN recipes r ON p.recipeId = r.id 
         ORDER BY p.productionDate DESC
@@ -35,7 +35,7 @@ interface ProductionDao {
     fun getProductionsWithRecipeFlow(): Flow<List<ProductionWithRecipe>>
 
     @Query("""
-        SELECT p.*, r.name AS recipeName 
+        SELECT p.*, r.name AS recipeName, r.servings AS recipeServings
         FROM productions p 
         INNER JOIN recipes r ON p.recipeId = r.id 
         WHERE p.productionDate BETWEEN :startDate AND :endDate 
@@ -48,6 +48,9 @@ interface ProductionDao {
 
     @Query("SELECT SUM(quantity) FROM productions WHERE recipeId = :recipeId")
     suspend fun getTotalProducedQuantity(recipeId: Long): Int
+
+    @Query("UPDATE productions SET sold = :sold WHERE id = :id")
+    suspend fun updateSold(id: Long, sold: Int)
 }
 
 data class ProductionWithRecipe(
@@ -55,7 +58,9 @@ data class ProductionWithRecipe(
     val recipeId: Long,
     val quantity: Int,
     val totalCost: Double,
+    val sold: Int = 0,
     val productionDate: Long,
     val notes: String?,
-    val recipeName: String
+    val recipeName: String,
+    val recipeServings: Int = 1
 )

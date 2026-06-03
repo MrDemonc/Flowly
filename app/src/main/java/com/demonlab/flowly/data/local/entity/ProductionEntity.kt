@@ -22,6 +22,7 @@ data class ProductionEntity(
     val recipeId: Long,
     val quantity: Int,
     val totalCost: Double = 0.0,
+    val sold: Int = 0,
     val productionDate: Long = System.currentTimeMillis(),
     val notes: String? = null
 )

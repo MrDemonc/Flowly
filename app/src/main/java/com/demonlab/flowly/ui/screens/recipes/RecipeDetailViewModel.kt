@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.demonlab.flowly.data.local.dao.IngredientWithQuantity
 import com.demonlab.flowly.data.local.entity.IngredientEntity
+import com.demonlab.flowly.data.local.entity.InventoryItemEntity
 import com.demonlab.flowly.data.local.entity.RecipeEntity
 import com.demonlab.flowly.data.local.entity.RecipeIngredientEntity
 import com.demonlab.flowly.data.repository.IngredientRepository
+import com.demonlab.flowly.data.repository.InventoryRepository
 import com.demonlab.flowly.data.repository.RecipeRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +22,7 @@ data class RecipeDetailState(
     val recipe: RecipeEntity? = null,
     val ingredients: List<IngredientWithQuantity> = emptyList(),
     val allIngredients: List<IngredientEntity> = emptyList(),
+    val inventoryItems: List<InventoryItemEntity> = emptyList(),
     val totalCost: Double = 0.0,
     val profitPerServing: Double = 0.0,
     val margin: Double = 0.0,
@@ -30,6 +33,7 @@ data class RecipeDetailState(
 class RecipeDetailViewModel(
     private val recipeRepository: RecipeRepository,
     private val ingredientRepository: IngredientRepository,
+    private val inventoryRepository: InventoryRepository,
     private val recipeId: Long
 ) : ViewModel() {
 
@@ -50,8 +54,12 @@ class RecipeDetailViewModel(
 
             combine(
                 recipeRepository.getRecipeIngredientsWithDetailsFlow(recipeId),
-                ingredientRepository.getAllFlow()
-            ) { ingredients: List<IngredientWithQuantity>, allIngredients: List<IngredientEntity> ->
+                ingredientRepository.getAllFlow(),
+                inventoryRepository.getAllFlow()
+            ) { ingredients: List<IngredientWithQuantity>,
+                allIngredients: List<IngredientEntity>,
+                inventoryItems: List<InventoryItemEntity> ->
+
                 val totalCost = ingredients.sumOf { it.totalCost }
                 val profit = recipe.salePrice - totalCost
                 val margin = if (recipe.salePrice > 0) (profit / recipe.salePrice) * 100 else 0.0
@@ -60,6 +68,7 @@ class RecipeDetailViewModel(
                     recipe = recipe,
                     ingredients = ingredients,
                     allIngredients = allIngredients,
+                    inventoryItems = inventoryItems,
                     totalCost = totalCost,
                     profitPerServing = profit,
                     margin = margin,
@@ -87,14 +96,37 @@ class RecipeDetailViewModel(
         }
     }
 
+    fun importFromInventory(inventoryItemId: Long, quantity: Double) {
+        viewModelScope.launch {
+            val inventoryItem = inventoryRepository.getById(inventoryItemId) ?: return@launch
+
+            val ingredientId = ingredientRepository.insert(
+                IngredientEntity(
+                    name = inventoryItem.name,
+                    unit = inventoryItem.unit,
+                    costPerUnit = inventoryItem.unitPrice
+                )
+            )
+
+            recipeRepository.addIngredientToRecipe(
+                RecipeIngredientEntity(
+                    recipeId = recipeId,
+                    ingredientId = ingredientId,
+                    quantity = quantity
+                )
+            )
+        }
+    }
+
     class Factory(
         private val recipeRepository: RecipeRepository,
         private val ingredientRepository: IngredientRepository,
+        private val inventoryRepository: InventoryRepository,
         private val recipeId: Long
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return RecipeDetailViewModel(recipeRepository, ingredientRepository, recipeId) as T
+            return RecipeDetailViewModel(recipeRepository, ingredientRepository, inventoryRepository, recipeId) as T
         }
     }
 }

@@ -28,4 +28,6 @@ class ProductionRepository(private val dao: ProductionDao) {
 
     suspend fun getTotalProducedQuantity(recipeId: Long): Int =
         dao.getTotalProducedQuantity(recipeId)
+
+    suspend fun updateSold(id: Long, sold: Int) = dao.updateSold(id, sold)
 }

@@ -30,22 +30,30 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import com.demonlab.flowly.FlowlyApp
+import com.demonlab.flowly.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeCreateScreen(
     app: FlowlyApp,
     navController: NavController,
+    recipeId: Long? = null,
     viewModel: RecipeCreateViewModel = viewModel(
-        factory = RecipeCreateViewModel.Factory(app.recipeRepository)
+        factory = RecipeCreateViewModel.Factory(app.recipeRepository, recipeId)
     )
 ) {
     val state by viewModel.state.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Nueva Receta", style = MaterialTheme.typography.titleLarge) },
+            title = {
+                Text(
+                    if (state.isEditing) "Editar Receta" else "Nueva Receta",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
@@ -66,17 +74,6 @@ fun RecipeCreateScreen(
                 label = { Text("Nombre de la receta") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                label = { Text("Descripción (opcional)") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
                 shape = MaterialTheme.shapes.medium
             )
 
@@ -119,13 +116,19 @@ fun RecipeCreateScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
-                onClick = { viewModel.save { id -> navController.navigate("recipes/$id") } },
+                onClick = {
+                    viewModel.save { id ->
+                        navController.navigate(Screen.RecipeDetail.createRoute(id)) {
+                            popUpTo(Screen.RecipeCreate.route) { inclusive = true }
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = state.name.isNotBlank() && !state.isSaving,
                 shape = MaterialTheme.shapes.medium
             ) {
                 Text(
-                    text = if (state.isSaving) "Guardando..." else "Crear Receta",
+                    text = if (state.isSaving) "Guardando..." else if (state.isEditing) "Guardar Cambios" else "Crear Receta",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

@@ -20,6 +20,9 @@ sealed class Screen(val route: String) {
         fun createRoute(recipeId: Long) = "recipes/$recipeId"
     }
     data object RecipeCreate : Screen("recipes/new")
+    data object RecipeEdit : Screen("recipes/edit/{recipeId}") {
+        fun createRoute(recipeId: Long) = "recipes/edit/$recipeId"
+    }
 
     data object Production : Screen("production")
     data object ProductionCreate : Screen("production/new")

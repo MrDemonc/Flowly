@@ -37,6 +37,21 @@ class ProductionViewModel(
         }
     }
 
+    fun updateQuantity(id: Long, newQuantity: Int) {
+        viewModelScope.launch {
+            val production = repository.getById(id) ?: return@launch
+            val oldCostPerBatch = production.totalCost / production.quantity
+            val newTotalCost = oldCostPerBatch * newQuantity
+            repository.update(production.copy(quantity = newQuantity, totalCost = newTotalCost))
+        }
+    }
+
+    fun updateSold(id: Long, sold: Int) {
+        viewModelScope.launch {
+            repository.updateSold(id, sold.coerceAtLeast(0))
+        }
+    }
+
     class Factory(private val repository: ProductionRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

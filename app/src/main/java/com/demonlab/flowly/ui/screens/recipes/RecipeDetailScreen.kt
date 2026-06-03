@@ -1,7 +1,9 @@
 package com.demonlab.flowly.ui.screens.recipes
 
 import com.demonlab.flowly.core.util.CurrencySymbol
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,6 +30,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -49,6 +56,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.demonlab.flowly.FlowlyApp
 import com.demonlab.flowly.data.local.dao.IngredientWithQuantity
+import com.demonlab.flowly.data.local.entity.InventoryItemEntity
+import com.demonlab.flowly.navigation.Screen
 import com.demonlab.flowly.ui.components.StatCard
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +71,7 @@ fun RecipeDetailScreen(
         factory = RecipeDetailViewModel.Factory(
             app.recipeRepository,
             app.ingredientRepository,
+            app.inventoryRepository,
             recipeId
         )
     )
@@ -83,6 +93,13 @@ fun RecipeDetailScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                 }
             },
+            actions = {
+                IconButton(onClick = {
+                    navController.navigate(Screen.RecipeEdit.createRoute(recipeId))
+                }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar")
+                }
+            },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.surface
             )
@@ -96,95 +113,99 @@ fun RecipeDetailScreen(
                 CircularProgressIndicator()
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        StatCard(
-                            title = "Precio Venta",
-                            value = "${CurrencySymbol.current} ${formatNumber(state.recipe?.salePrice ?: 0.0)}",
-                            modifier = Modifier.weight(1f),
-                            valueColor = MaterialTheme.colorScheme.primary
-                        )
-                        StatCard(
-                            title = "Costo Total",
-                            value = "${CurrencySymbol.current} ${formatNumber(state.totalCost)}",
-                            modifier = Modifier.weight(1f),
-                            valueColor = MaterialTheme.colorScheme.secondary
-                        )
+            Box(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            StatCard(
+                                title = "Precio Venta",
+                                value = "${CurrencySymbol.current} ${formatNumber(state.recipe?.salePrice ?: 0.0)}",
+                                modifier = Modifier.weight(1f),
+                                valueColor = MaterialTheme.colorScheme.primary
+                            )
+                            StatCard(
+                                title = "Costo Total",
+                                value = "${CurrencySymbol.current} ${formatNumber(state.totalCost)}",
+                                modifier = Modifier.weight(1f),
+                                valueColor = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
-                }
 
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        StatCard(
-                            title = "Ganancia x Porción",
-                            value = "${CurrencySymbol.current} ${formatNumber(state.profitPerServing)}",
-                            modifier = Modifier.weight(1f),
-                            valueColor = if (state.profitPerServing >= 0)
-                                MaterialTheme.colorScheme.tertiary
-                            else MaterialTheme.colorScheme.error
-                        )
-                        StatCard(
-                            title = "Margen",
-                            value = "${String.format("%.1f", state.margin)}%",
-                            modifier = Modifier.weight(1f),
-                            valueColor = if (state.margin >= 20)
-                                MaterialTheme.colorScheme.tertiary
-                            else MaterialTheme.colorScheme.error
-                        )
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            StatCard(
+                                title = "Ganancia x Porción",
+                                value = "${CurrencySymbol.current} ${formatNumber(state.profitPerServing)}",
+                                modifier = Modifier.weight(1f),
+                                valueColor = if (state.profitPerServing >= 0)
+                                    MaterialTheme.colorScheme.tertiary
+                                else MaterialTheme.colorScheme.error
+                            )
+                            StatCard(
+                                title = "Margen",
+                                value = "${String.format("%.1f", state.margin)}%",
+                                modifier = Modifier.weight(1f),
+                                valueColor = if (state.margin >= 20)
+                                    MaterialTheme.colorScheme.tertiary
+                                else MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
-                }
 
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    state.recipe?.let { recipe ->
-                        recipe.description?.let {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        state.recipe?.let { recipe ->
                             Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodyLarge,
+                                text = "${recipe.servings} porciones",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                         }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider()
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "${recipe.servings} porciones",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "Ingredientes",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
                         )
+                    }
+
+                    items(state.ingredients) { ingredient ->
+                        IngredientCostCard(
+                            ingredient = ingredient,
+                            onRemove = { viewModel.removeIngredient(ingredient.id) }
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Ingredientes",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                items(state.ingredients) { ingredient ->
-                    IngredientCostCard(
-                        ingredient = ingredient,
-                        onRemove = { viewModel.removeIngredient(ingredient.id) }
-                    )
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
+                FloatingActionButton(
+                    onClick = { showAddDialog = true },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Agregar ingrediente")
                 }
             }
         }
@@ -192,10 +213,9 @@ fun RecipeDetailScreen(
 
     if (showAddDialog) {
         AddIngredientDialog(
-            ingredients = state.allIngredients,
-            existingIds = state.ingredients.map { it.ingredientId }.toSet(),
-            onAdd = { ingredientId, quantity ->
-                viewModel.addIngredient(ingredientId, quantity)
+            inventoryItems = state.inventoryItems,
+            onAdd = { inventoryItemId, quantity ->
+                viewModel.importFromInventory(inventoryItemId, quantity)
                 showAddDialog = false
             },
             onDismiss = { showAddDialog = false }
@@ -253,33 +273,32 @@ private fun IngredientCostCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddIngredientDialog(
-    ingredients: List<com.demonlab.flowly.data.local.entity.IngredientEntity>,
-    existingIds: Set<Long>,
+    inventoryItems: List<InventoryItemEntity>,
     onAdd: (Long, Double) -> Unit,
     onDismiss: () -> Unit
 ) {
     var selectedId by androidx.compose.runtime.remember { mutableStateOf<Long?>(null) }
     var quantityText by androidx.compose.runtime.remember { mutableStateOf("") }
     var dropdownExpanded by androidx.compose.runtime.remember { mutableStateOf(false) }
-    val available = ingredients.filter { it.id !in existingIds }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Agregar Ingrediente", style = MaterialTheme.typography.headlineSmall) },
+        title = { Text("Agregar del inventario", style = MaterialTheme.typography.headlineSmall) },
         text = {
             Column {
-                if (available.isEmpty()) {
-                    Text("Todos los ingredientes ya están agregados")
+                if (inventoryItems.isEmpty()) {
+                    Text("No hay productos en el inventario")
                 } else {
                     ExposedDropdownMenuBox(
                         expanded = dropdownExpanded,
                         onExpandedChange = { dropdownExpanded = !dropdownExpanded }
                     ) {
+                        val selectedItem = inventoryItems.find { it.id == selectedId }
                         OutlinedTextField(
-                            value = available.find { it.id == selectedId }?.name ?: "",
+                            value = selectedItem?.name ?: "",
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Ingrediente") },
+                            label = { Text("Producto") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
                             modifier = Modifier.fillMaxWidth().menuAnchor(),
                             shape = MaterialTheme.shapes.medium
@@ -288,26 +307,35 @@ private fun AddIngredientDialog(
                             expanded = dropdownExpanded,
                             onDismissRequest = { dropdownExpanded = false }
                         ) {
-                            available.forEach { ingredient ->
+                            inventoryItems.forEach { item ->
                                 DropdownMenuItem(
-                                    text = { Text(ingredient.name) },
-                                    onClick = { selectedId = ingredient.id; dropdownExpanded = false }
+                                    text = {
+                                        Column {
+                                            Text(item.name, style = MaterialTheme.typography.bodyMedium)
+                                            Text(
+                                                "Stock: ${item.quantity} ${item.unit}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    },
+                                    onClick = { selectedId = item.id; dropdownExpanded = false }
                                 )
                             }
                         }
                     }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = quantityText,
-                        onValueChange = { quantityText = it },
-                        label = { Text("Cantidad") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = MaterialTheme.shapes.medium
-                    )
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = quantityText,
+                    onValueChange = { quantityText = it },
+                    label = { Text("Cantidad") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
+                )
             }
         },
         confirmButton = {

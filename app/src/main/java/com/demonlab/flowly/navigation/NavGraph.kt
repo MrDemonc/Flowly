@@ -98,6 +98,9 @@ fun FlowlyNavGraph(app: FlowlyApp) {
             composable(Screen.Recipes.route) { RecipesScreen(app, navController) }
             composable(Screen.RecipeDetail.route, arguments = listOf(navArgument("recipeId") { type = NavType.LongType })) { RecipeDetailScreen(app, navController) }
             composable(Screen.RecipeCreate.route) { RecipeCreateScreen(app, navController) }
+            composable(Screen.RecipeEdit.route, arguments = listOf(navArgument("recipeId") { type = NavType.LongType })) {
+                RecipeCreateScreen(app, navController, recipeId = it.arguments?.getLong("recipeId"))
+            }
 
             composable(Screen.Production.route) { ProductionScreen(app, navController) }
             composable(Screen.ProductionCreate.route) { ProductionCreateScreen(app, navController) }

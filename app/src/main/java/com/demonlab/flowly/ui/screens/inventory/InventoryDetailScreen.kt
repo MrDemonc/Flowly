@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import com.demonlab.flowly.FlowlyApp
 
 private val commonUnits = listOf("unidades", "kg", "g", "L", "mL", "tazas", "cucharadas", "paq")
+private val commonCategories = listOf("General", "Materia Prima", "Empaque", "Producto Terminado")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -157,15 +158,31 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = state.category,
-                onValueChange = viewModel::onCategoryChange,
-                label = { Text("Categoría") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text("Materia Prima, Empaque, Producto Terminado") },
-                shape = MaterialTheme.shapes.medium
+            Text(
+                text = "Categoría",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                commonCategories.forEach { category ->
+                    FilterChip(
+                        selected = state.category == category,
+                        onClick = { viewModel.onCategoryChange(category) },
+                        label = { Text(category) },
+                        shape = pillShape,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
