@@ -1,18 +1,25 @@
 package com.demonlab.flowly.ui.screens.inventory
 
+import com.demonlab.flowly.core.util.CurrencySymbol
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +38,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.demonlab.flowly.FlowlyApp
 
+private val commonUnits = listOf("unidades", "kg", "g", "L", "mL", "tazas", "cucharadas", "paq")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryDetailScreen(
@@ -46,6 +55,7 @@ fun InventoryDetailScreen(
     )
 ) {
     val state by viewModel.state.collectAsState()
+    val pillShape = RoundedCornerShape(50)
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -82,27 +92,68 @@ fun InventoryDetailScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = state.quantity,
-                onValueChange = viewModel::onQuantityChange,
-                label = { Text("Cantidad") },
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = state.quantity,
+                    onValueChange = viewModel::onQuantityChange,
+                    label = { Text("Cantidad") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
+                )
+
+                OutlinedTextField(
+                    value = state.unitPrice,
+                    onValueChange = viewModel::onUnitPriceChange,
+                    label = { Text("Precio unit.") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
+                )
+            }
+
+            if (state.quantity.isNotBlank() && state.unitPrice.isNotBlank()) {
+                Text(
+                    text = "Total: ${CurrencySymbol.current}${"%.2f".format(state.totalValue)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = state.unit,
-                onValueChange = viewModel::onUnitChange,
-                label = { Text("Unidad") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = { Text("kg, g, L, unidades") },
-                shape = MaterialTheme.shapes.medium
+            Text(
+                text = "Unidad de medida",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                commonUnits.forEach { unit ->
+                    FilterChip(
+                        selected = state.unit == unit,
+                        onClick = { viewModel.onUnitChange(unit) },
+                        label = { Text(unit) },
+                        shape = pillShape,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 

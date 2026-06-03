@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,8 @@ fun FilterChipsRow(
     modifier: Modifier = Modifier,
     allLabel: String = "Todos"
 ) {
+    val pillShape = RoundedCornerShape(50)
+
     Row(
         modifier = modifier.horizontalScroll(rememberScrollState())
     ) {
@@ -28,6 +31,7 @@ fun FilterChipsRow(
             selected = selectedOption == null,
             onClick = { onOptionSelected(null) },
             label = { Text(allLabel) },
+            shape = pillShape,
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                 selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -41,6 +45,7 @@ fun FilterChipsRow(
                     onOptionSelected(if (selectedOption == option) null else option)
                 },
                 label = { Text(option) },
+                shape = pillShape,
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer

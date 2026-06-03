@@ -8,8 +8,8 @@ class InventoryRepository(private val dao: InventoryItemDao) {
 
     fun getAllFlow(): Flow<List<InventoryItemEntity>> = dao.getAllFlow()
 
-    fun getByCategoryFlow(category: String): Flow<List<InventoryItemEntity>> =
-        dao.getByCategoryFlow(category)
+    fun getByUnitFlow(unit: String): Flow<List<InventoryItemEntity>> =
+        dao.getByUnitFlow(unit)
 
     fun getLowStockFlow(): Flow<List<InventoryItemEntity>> = dao.getLowStockFlow()
 
@@ -23,5 +23,5 @@ class InventoryRepository(private val dao: InventoryItemDao) {
 
     fun searchFlow(query: String): Flow<List<InventoryItemEntity>> = dao.searchFlow(query)
 
-    fun getCategoriesFlow(): Flow<List<String>> = dao.getCategoriesFlow()
+    fun getDistinctUnitsFlow(): Flow<List<String>> = dao.getDistinctUnitsFlow()
 }

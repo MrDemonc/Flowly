@@ -14,12 +14,16 @@ data class InventoryDetailState(
     val name: String = "",
     val quantity: String = "",
     val unit: String = "unidades",
+    val unitPrice: String = "",
     val category: String = "General",
     val minStock: String = "",
     val notes: String = "",
     val isEditing: Boolean = false,
     val isSaving: Boolean = false
-)
+) {
+    val totalValue: Double
+        get() = (quantity.toDoubleOrNull() ?: 0.0) * (unitPrice.toDoubleOrNull() ?: 0.0)
+}
 
 class InventoryDetailViewModel(
     private val repository: InventoryRepository,
@@ -43,6 +47,7 @@ class InventoryDetailViewModel(
                     name = item.name,
                     quantity = if (item.quantity == 0.0) "" else item.quantity.toString(),
                     unit = item.unit,
+                    unitPrice = if (item.unitPrice == 0.0) "" else item.unitPrice.toString(),
                     category = item.category,
                     minStock = item.minStock?.toString() ?: "",
                     notes = item.notes ?: "",
@@ -55,6 +60,7 @@ class InventoryDetailViewModel(
     fun onNameChange(value: String) { _state.value = _state.value.copy(name = value) }
     fun onQuantityChange(value: String) { _state.value = _state.value.copy(quantity = value) }
     fun onUnitChange(value: String) { _state.value = _state.value.copy(unit = value) }
+    fun onUnitPriceChange(value: String) { _state.value = _state.value.copy(unitPrice = value) }
     fun onCategoryChange(value: String) { _state.value = _state.value.copy(category = value) }
     fun onMinStockChange(value: String) { _state.value = _state.value.copy(minStock = value) }
     fun onNotesChange(value: String) { _state.value = _state.value.copy(notes = value) }
@@ -71,6 +77,7 @@ class InventoryDetailViewModel(
                     name = current.name.trim(),
                     quantity = current.quantity.toDoubleOrNull() ?: 0.0,
                     unit = current.unit.ifBlank { "unidades" },
+                    unitPrice = current.unitPrice.toDoubleOrNull() ?: 0.0,
                     category = current.category.ifBlank { "General" },
                     minStock = current.minStock.toDoubleOrNull(),
                     notes = current.notes.ifBlank { null }

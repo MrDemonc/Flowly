@@ -1,5 +1,6 @@
 package com.demonlab.flowly.ui.screens.inventory
 
+import com.demonlab.flowly.core.util.CurrencySymbol
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,14 +22,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -94,7 +92,7 @@ fun InventoryScreen(
                 titleContentColor = MaterialTheme.colorScheme.onSurface
             )
         )
-        
+
         OutlinedTextField(
             value = state.searchQuery,
             onValueChange = { viewModel.onSearchQueryChange(it) },
@@ -106,9 +104,9 @@ fun InventoryScreen(
         )
         Spacer(modifier = Modifier.height(8.dp))
         FilterChipsRow(
-            options = state.categories,
-            selectedOption = state.selectedCategory,
-            onOptionSelected = { viewModel.onCategorySelect(it) },
+            options = state.units,
+            selectedOption = state.selectedUnit,
+            onOptionSelected = { viewModel.onUnitSelect(it) },
             modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -197,16 +195,25 @@ private fun InventoryItemCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "${item.quantity} ${item.unit}",
+                    text = "Stock: ${item.quantity} ${item.unit}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (item.category != "General") {
+                if (item.unitPrice > 0) {
+                    val totalValue = item.quantity * item.unitPrice
                     Text(
-                        text = item.category,
-                        style = MaterialTheme.typography.labelSmall,
+                        text = "P. unit: ${CurrencySymbol.current}${"%.2f".format(item.unitPrice)} — Total: ${CurrencySymbol.current}${"%.2f".format(totalValue)}",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (item.minStock != null && item.quantity <= item.minStock) {
+                    Text(
+                        text = "Stock bajo!",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }

@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 
 data class InventoryUiState(
     val items: List<InventoryItemEntity> = emptyList(),
-    val categories: List<String> = emptyList(),
-    val selectedCategory: String? = null,
+    val units: List<String> = emptyList(),
+    val selectedUnit: String? = null,
     val searchQuery: String = "",
     val isLoading: Boolean = true
 )
@@ -30,14 +30,14 @@ class InventoryViewModel(
     private var searchJob: Job? = null
 
     init {
-        loadCategories()
+        loadUnits()
         loadItems()
     }
 
-    private fun loadCategories() {
+    private fun loadUnits() {
         viewModelScope.launch {
-            repository.getCategoriesFlow().collect { categories ->
-                _state.value = _state.value.copy(categories = categories)
+            repository.getDistinctUnitsFlow().collect { units ->
+                _state.value = _state.value.copy(units = units)
             }
         }
     }
@@ -66,11 +66,11 @@ class InventoryViewModel(
         }
     }
 
-    fun onCategorySelect(category: String?) {
-        _state.value = _state.value.copy(selectedCategory = category)
+    fun onUnitSelect(unit: String?) {
+        _state.value = _state.value.copy(selectedUnit = unit)
         viewModelScope.launch {
-            if (category != null) {
-                repository.getByCategoryFlow(category).collect { items ->
+            if (unit != null) {
+                repository.getByUnitFlow(unit).collect { items ->
                     _state.value = _state.value.copy(items = items)
                 }
             } else {
