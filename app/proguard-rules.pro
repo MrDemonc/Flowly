@@ -1,0 +1,1 @@
+-keep class com.demonlab.cukiapp.data.local.entity.** { *; }

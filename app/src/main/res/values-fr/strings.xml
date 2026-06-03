@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flowly</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Bienvenue sur Flowly</string>
+    <string name="onboarding_welcome_desc">Votre solution complète pour gérer les stocks, les recettes, les ventes, les dépenses et la production. Prenez le contrôle de votre entreprise.</string>
+    <string name="onboarding_start_button">Commencer</string>
+
+    <string name="onboarding_notification_title">Notifications</string>
+    <string name="onboarding_notification_desc">Autorisez les notifications pour rester informé des stocks faibles, des productions en attente et des mises à jour importantes de votre entreprise.</string>
+    <string name="onboarding_grant_button">Accorder la permission</string>
+
+    <string name="onboarding_currency_title">Choisissez votre devise</string>
+    <string name="onboarding_currency_desc">Sélectionnez la devise que vous utilisez dans votre entreprise. Tous les montants seront affichés avec ce symbole.</string>
+    <string name="onboarding_currency_label">Devise</string>
+
+    <string name="onboarding_summary_title">Tout est prêt !</string>
+    <string name="onboarding_summary_desc">Flowly vous aidera à gérer :</string>
+    <string name="onboarding_summary_features">• Contrôle des stocks\n• Recettes et auto-évaluation des coûts\n• Ventes et achats\n• Dépenses et rapports de bénéfices\n• Gestion de la production</string>
+
+    <string name="onboarding_next_button">Suivant</string>
+    <string name="onboarding_skip_button">Passer pour l\'instant</string>
+    <string name="onboarding_finish_button">Terminer</string>
+
+    <!-- Currencies -->
+    <string name="currency_pyg">Guarani</string>
+    <string name="currency_usd">Dollar américain</string>
+    <string name="currency_brl">Réal brésilien</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_ars">Peso argentin</string>
+    <string name="currency_bob">Boliviano</string>
+    <string name="currency_pen">Sol péruvien</string>
+</resources>

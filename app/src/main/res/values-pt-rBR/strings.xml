@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Flowly</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Bem-vindo ao Flowly</string>
+    <string name="onboarding_welcome_desc">Sua solução completa para gerenciar estoque, receitas, vendas, despesas e produção. Assuma o controle do seu negócio.</string>
+    <string name="onboarding_start_button">Começar</string>
+
+    <string name="onboarding_notification_title">Notificações</string>
+    <string name="onboarding_notification_desc">Permita notificações para ficar informado sobre estoque baixo, produções pendentes e atualizações importantes no seu negócio.</string>
+    <string name="onboarding_grant_button">Conceder Permissão</string>
+
+    <string name="onboarding_currency_title">Escolha sua moeda</string>
+    <string name="onboarding_currency_desc">Selecione a moeda que você usa no seu negócio. Todos os valores serão exibidos com este símbolo.</string>
+    <string name="onboarding_currency_label">Moeda</string>
+
+    <string name="onboarding_summary_title">Tudo pronto!</string>
+    <string name="onboarding_summary_desc">O Flowly vai te ajudar a gerenciar:</string>
+    <string name="onboarding_summary_features">• Controle de estoque\n• Receitas e auto-custeio\n• Vendas e compras\n• Despesas e relatórios de lucro\n• Gestão de produção</string>
+
+    <string name="onboarding_next_button">Próximo</string>
+    <string name="onboarding_skip_button">Pular por agora</string>
+    <string name="onboarding_finish_button">Finalizar</string>
+
+    <!-- Currencies -->
+    <string name="currency_pyg">Guarani</string>
+    <string name="currency_usd">Dólar Americano</string>
+    <string name="currency_brl">Real Brasileiro</string>
+    <string name="currency_eur">Euro</string>
+    <string name="currency_ars">Peso Argentino</string>
+    <string name="currency_bob">Boliviano</string>
+    <string name="currency_pen">Sol Peruano</string>
+</resources>
