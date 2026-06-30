@@ -37,7 +37,7 @@ import com.demonlab.flowly.data.local.entity.SupplierEntity
         CategoryEntity::class,
         SupplierEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

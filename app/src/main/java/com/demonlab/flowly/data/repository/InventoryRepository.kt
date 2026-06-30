@@ -15,6 +15,8 @@ class InventoryRepository(private val dao: InventoryItemDao) {
 
     suspend fun getById(id: Long): InventoryItemEntity? = dao.getById(id)
 
+    suspend fun getByName(name: String): InventoryItemEntity? = dao.getByName(name)
+
     suspend fun insert(item: InventoryItemEntity): Long = dao.insert(item)
 
     suspend fun update(item: InventoryItemEntity) = dao.update(item)

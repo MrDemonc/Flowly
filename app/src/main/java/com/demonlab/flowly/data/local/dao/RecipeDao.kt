@@ -57,6 +57,14 @@ interface RecipeDao {
     """)
     fun getRecipeIngredientsWithDetailsFlow(recipeId: Long): Flow<List<IngredientWithQuantity>>
 
+    @Query("""
+        SELECT ri.*, i.name AS ingredientName, i.unit, i.costPerUnit 
+        FROM recipe_ingredients ri 
+        INNER JOIN ingredients i ON ri.ingredientId = i.id 
+        WHERE ri.recipeId = :recipeId
+    """)
+    suspend fun getRecipeIngredientsWithDetails(recipeId: Long): List<IngredientWithQuantity>
+
     @Query("SELECT * FROM recipe_ingredients WHERE recipeId = :recipeId")
     suspend fun getRecipeIngredientsSync(recipeId: Long): List<RecipeIngredientEntity>
 }

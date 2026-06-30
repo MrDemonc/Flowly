@@ -47,7 +47,7 @@ fun ProductionCreateScreen(
     app: FlowlyApp,
     navController: NavController,
     viewModel: ProductionCreateViewModel = viewModel(
-        factory = ProductionCreateViewModel.Factory(app.productionRepository, app.recipeRepository)
+        factory = ProductionCreateViewModel.Factory(app.productionRepository, app.recipeRepository, app.deductInventoryUseCase)
     )
 ) {
     val state by viewModel.state.collectAsState()

@@ -59,8 +59,19 @@ class SaleCreateViewModel(
         val qty = current.quantity.toDoubleOrNull() ?: 0.0
         val price = current.unitPrice.toDoubleOrNull() ?: 0.0
         val recipe = current.recipes.find { it.id == current.selectedRecipeId }
-        val estimatedCost = (recipe?.salePrice ?: 0.0) * 0.5 * qty
-        _state.value = current.copy(totalAmount = qty * price, costAtSale = estimatedCost)
+        
+        _state.value = current.copy(totalAmount = qty * price)
+
+        if (recipe != null) {
+            viewModelScope.launch {
+                val recipeCost = recipeRepository.calculateRecipeCost(recipe.id)
+                val servings = if (recipe.servings > 0) recipe.servings.toDouble() else 1.0
+                val realCost = (recipeCost / servings) * qty
+                _state.value = _state.value.copy(costAtSale = realCost)
+            }
+        } else {
+            _state.value = _state.value.copy(costAtSale = 0.0)
+        }
     }
 
     fun save(onSuccess: () -> Unit) {

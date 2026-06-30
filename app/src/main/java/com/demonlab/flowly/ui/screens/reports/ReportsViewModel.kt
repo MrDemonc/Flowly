@@ -85,7 +85,7 @@ class ReportsViewModel(
                     totalProfit = profit,
                     totalExpenses = expenses,
                     totalPurchases = purchases,
-                    netProfit = profit - expenses - purchases,
+                    netProfit = profit - expenses,
                     salesCount = summary?.count ?: 0,
                     expensesByCategory = byCategory,
                     startDate = s.startDate,

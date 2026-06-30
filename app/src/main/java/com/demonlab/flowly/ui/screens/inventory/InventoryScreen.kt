@@ -171,6 +171,24 @@ fun InventoryScreen(
     }
 }
 
+private fun getSubUnit(unit: String): String {
+    return when (unit.lowercase()) {
+        "kg" -> "g"
+        "l" -> "mL"
+        "paq" -> "unidades"
+        "unidades" -> "unidades"
+        else -> unit
+    }
+}
+
+private fun formatDecimal(value: Double): String {
+    return if (value == value.toLong().toDouble()) {
+        value.toLong().toString()
+    } else {
+        String.format("%.2f", value)
+    }
+}
+
 @Composable
 private fun InventoryItemCard(
     item: InventoryItemEntity,
@@ -178,6 +196,10 @@ private fun InventoryItemCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val subUnit = getSubUnit(item.unit)
+    val remainingSubUnits = item.quantity * item.unitSize
+    val purchasedSubUnits = item.purchasedQuantity * item.unitSize
+
     SectionCard(
         position = position,
         onClick = onClick,
@@ -197,7 +219,12 @@ private fun InventoryItemCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Stock: ${item.quantity} ${item.unit}",
+                    text = "Restante: ${formatDecimal(remainingSubUnits)} $subUnit",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Comprado: ${formatDecimal(purchasedSubUnits)} $subUnit",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

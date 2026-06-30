@@ -100,12 +100,24 @@ fun InventoryDetailScreen(
                 OutlinedTextField(
                     value = state.quantity,
                     onValueChange = viewModel::onQuantityChange,
-                    label = { Text("Cantidad") },
+                    label = { Text(if (state.isEditing) "Cant. Restante" else "Cantidad") },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     shape = MaterialTheme.shapes.medium
                 )
+
+                if (state.isEditing) {
+                    OutlinedTextField(
+                        value = state.purchasedQuantity,
+                        onValueChange = viewModel::onPurchasedQuantityChange,
+                        label = { Text("Cant. Comprada") },
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                }
 
                 OutlinedTextField(
                     value = state.unitPrice,
@@ -155,6 +167,23 @@ fun InventoryDetailScreen(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = state.unitSize,
+                onValueChange = viewModel::onUnitSizeChange,
+                label = { Text("Cantidad por empaque (opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                supportingText = {
+                    if (state.unitSize.toDoubleOrNull()?.let { it > 1.0 } == true) {
+                        Text("1 ${state.unit} → ${state.unitSize} ${state.unit}")
+                    }
+                }
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 

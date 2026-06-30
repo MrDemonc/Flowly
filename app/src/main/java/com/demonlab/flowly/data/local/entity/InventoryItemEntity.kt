@@ -10,8 +10,10 @@ data class InventoryItemEntity(
     val quantity: Double,
     val unit: String,
     val unitPrice: Double = 0.0,
+    val unitSize: Double = 1.0,
     val minStock: Double? = null,
     val category: String = "General",
     val notes: String? = null,
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val purchasedQuantity: Double = quantity
 )

@@ -7,6 +7,7 @@ import com.demonlab.flowly.data.local.entity.ProductionEntity
 import com.demonlab.flowly.data.local.entity.RecipeEntity
 import com.demonlab.flowly.data.repository.ProductionRepository
 import com.demonlab.flowly.data.repository.RecipeRepository
+import com.demonlab.flowly.domain.usecase.DeductInventoryUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +25,8 @@ data class ProductionCreateState(
 
 class ProductionCreateViewModel(
     private val productionRepository: ProductionRepository,
-    private val recipeRepository: RecipeRepository
+    private val recipeRepository: RecipeRepository,
+    private val deductInventoryUseCase: DeductInventoryUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ProductionCreateState())
@@ -55,13 +57,12 @@ class ProductionCreateViewModel(
         val recipe = current.recipes.find { it.id == current.selectedRecipeId }
         val qty = current.quantity.toDoubleOrNull() ?: 1.0
         if (recipe != null) {
-            // Simple cost estimation based on sale price * margin assumption
-            // Real costing would sum ingredients
             viewModelScope.launch {
-                val ingredients = recipeRepository.getRecipeIngredientsWithDetailsFlow(recipe.id)
-                // Placeholder - real cost comes from ingredients
-                _state.value = _state.value.copy(totalCost = recipe.salePrice * 0.5 * qty)
+                val realRecipeCost = recipeRepository.calculateRecipeCost(recipe.id)
+                _state.value = _state.value.copy(totalCost = realRecipeCost * qty)
             }
+        } else {
+            _state.value = _state.value.copy(totalCost = 0.0)
         }
     }
 
@@ -80,17 +81,19 @@ class ProductionCreateViewModel(
                     notes = current.notes.ifBlank { null }
                 )
             )
+            deductInventoryUseCase.execute(recipeId, qty)
             onSuccess()
         }
     }
 
     class Factory(
         private val productionRepository: ProductionRepository,
-        private val recipeRepository: RecipeRepository
+        private val recipeRepository: RecipeRepository,
+        private val deductInventoryUseCase: DeductInventoryUseCase
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ProductionCreateViewModel(productionRepository, recipeRepository) as T
+            return ProductionCreateViewModel(productionRepository, recipeRepository, deductInventoryUseCase) as T
         }
     }
 }

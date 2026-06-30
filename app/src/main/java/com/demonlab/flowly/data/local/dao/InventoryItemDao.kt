@@ -23,6 +23,9 @@ interface InventoryItemDao {
     @Query("SELECT * FROM inventory_items WHERE id = :id")
     suspend fun getById(id: Long): InventoryItemEntity?
 
+    @Query("SELECT * FROM inventory_items WHERE LOWER(name) = LOWER(:name) LIMIT 1")
+    suspend fun getByName(name: String): InventoryItemEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: InventoryItemEntity): Long
 

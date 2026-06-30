@@ -29,6 +29,9 @@ class RecipeRepository(private val dao: RecipeDao) {
     suspend fun getRecipeIngredientsSync(recipeId: Long): List<RecipeIngredientEntity> =
         dao.getRecipeIngredientsSync(recipeId)
 
+    suspend fun getRecipeIngredientsWithDetails(recipeId: Long): List<IngredientWithQuantity> =
+        dao.getRecipeIngredientsWithDetails(recipeId)
+
     suspend fun addIngredientToRecipe(relation: RecipeIngredientEntity): Long =
         dao.addIngredientToRecipe(relation)
 
@@ -39,8 +42,6 @@ class RecipeRepository(private val dao: RecipeDao) {
         dao.updateRecipeIngredients(recipeId, ingredients)
 
     suspend fun calculateRecipeCost(recipeId: Long): Double {
-        val ingredients = dao.getRecipeIngredientsWithDetailsFlow(recipeId)
-        // This will be handled in ViewModel with the flow
-        return 0.0
+        return dao.getRecipeIngredientsWithDetails(recipeId).sumOf { it.quantity * it.costPerUnit }
     }
 }

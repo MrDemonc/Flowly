@@ -49,17 +49,18 @@ class DashboardViewModel(
             val now = System.currentTimeMillis()
             val dayStart = getDayStart(now)
             val monthStart = getMonthStart(now)
+            val endOfTime = Long.MAX_VALUE
 
             combine(
                 listOf<Flow<Any?>>(
-                    saleRepository.getTotalRevenueInRangeFlow(dayStart, now),
-                    saleRepository.getTotalProfitInRangeFlow(dayStart, now),
-                    saleRepository.getSalesSummaryFlow(dayStart, now),
-                    expenseRepository.getTotalExpensesInRangeFlow(dayStart, now),
-                    saleRepository.getTotalRevenueInRangeFlow(monthStart, now),
-                    saleRepository.getTotalProfitInRangeFlow(monthStart, now),
-                    expenseRepository.getTotalExpensesInRangeFlow(monthStart, now),
-                    purchaseRepository.getTotalSpentInRangeFlow(monthStart, now)
+                    saleRepository.getTotalRevenueInRangeFlow(dayStart, endOfTime),
+                    saleRepository.getTotalProfitInRangeFlow(dayStart, endOfTime),
+                    saleRepository.getSalesSummaryFlow(dayStart, endOfTime),
+                    expenseRepository.getTotalExpensesInRangeFlow(dayStart, endOfTime),
+                    saleRepository.getTotalRevenueInRangeFlow(monthStart, endOfTime),
+                    saleRepository.getTotalProfitInRangeFlow(monthStart, endOfTime),
+                    expenseRepository.getTotalExpensesInRangeFlow(monthStart, endOfTime),
+                    purchaseRepository.getTotalSpentInRangeFlow(monthStart, endOfTime)
                 )
             ) { values: Array<Any?> ->
                 _state.value = DashboardState(

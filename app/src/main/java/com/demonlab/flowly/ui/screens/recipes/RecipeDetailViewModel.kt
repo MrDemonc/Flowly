@@ -61,7 +61,8 @@ class RecipeDetailViewModel(
                 inventoryItems: List<InventoryItemEntity> ->
 
                 val totalCost = ingredients.sumOf { it.totalCost }
-                val profit = recipe.salePrice - totalCost
+                val costPerServing = if (recipe.servings > 0) totalCost / recipe.servings else totalCost
+                val profit = recipe.salePrice - costPerServing
                 val margin = if (recipe.salePrice > 0) (profit / recipe.salePrice) * 100 else 0.0
 
                 _state.value = RecipeDetailState(
@@ -96,15 +97,32 @@ class RecipeDetailViewModel(
         }
     }
 
+    private fun getSubUnit(unit: String): String {
+        return when (unit.lowercase()) {
+            "kg" -> "g"
+            "l" -> "mL"
+            "paq" -> "unidades"
+            "unidades" -> "unidades"
+            else -> unit
+        }
+    }
+
     fun importFromInventory(inventoryItemId: Long, quantity: Double) {
         viewModelScope.launch {
             val inventoryItem = inventoryRepository.getById(inventoryItemId) ?: return@launch
+            
+            val subUnit = getSubUnit(inventoryItem.unit)
+            val costPerSubUnit = if (inventoryItem.unitSize > 0) {
+                inventoryItem.unitPrice / inventoryItem.unitSize
+            } else {
+                inventoryItem.unitPrice
+            }
 
             val ingredientId = ingredientRepository.insert(
                 IngredientEntity(
                     name = inventoryItem.name,
-                    unit = inventoryItem.unit,
-                    costPerUnit = inventoryItem.unitPrice
+                    unit = subUnit,
+                    costPerUnit = costPerSubUnit
                 )
             )
 

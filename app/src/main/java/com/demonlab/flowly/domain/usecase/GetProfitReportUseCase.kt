@@ -47,7 +47,7 @@ class GetProfitReportUseCase(
                 grossProfit = grossProfit,
                 totalExpenses = expenses,
                 totalPurchases = purchases,
-                netProfit = grossProfit - expenses - purchases,
+                netProfit = grossProfit - expenses,
                 salesCount = summary?.count ?: 0
             )
         }

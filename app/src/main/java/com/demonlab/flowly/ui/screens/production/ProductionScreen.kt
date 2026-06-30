@@ -2,6 +2,8 @@ package com.demonlab.flowly.ui.screens.production
 
 import com.demonlab.flowly.core.util.CurrencySymbol
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -76,6 +79,7 @@ fun ProductionScreen(
     )
     var deleteTargetId by remember { mutableStateOf<Long?>(null) }
     var addBatchTargetId by remember { mutableStateOf<Long?>(null) }
+    var activeDashboardProduction by remember { mutableStateOf<ProductionWithRecipe?>(null) }
 
     Column(
         modifier = Modifier
@@ -122,6 +126,7 @@ fun ProductionScreen(
                             ProductionCard(
                                 position = sectionPositionFromIndex(index, state.productions.size),
                                 production = production,
+                                onClick = { activeDashboardProduction = production },
                                 onDelete = { deleteTargetId = production.id },
                                 onAddBatch = { addBatchTargetId = production.id },
                                 onUpdateSold = { sold -> viewModel.updateSold(production.id, sold) }
@@ -167,23 +172,31 @@ fun ProductionScreen(
             )
         }
     }
+    activeDashboardProduction?.let { prod ->
+        ProductionDashboardDialog(
+            production = prod,
+            onDismiss = { activeDashboardProduction = null }
+        )
+    }
 }
 
 @Composable
 private fun ProductionCard(
     production: ProductionWithRecipe,
     position: SectionPosition,
+    onClick: () -> Unit,
     onDelete: () -> Unit,
     onAddBatch: () -> Unit,
     onUpdateSold: (Int) -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "PY")) }
     val totalUnits = production.quantity * production.recipeServings
-    val remaining = totalUnits - production.sold
     val pillShape = RoundedCornerShape(50)
+    val totalSoldPrice = production.sold * production.recipeSalePrice
 
     SectionCard(
         position = position,
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp)
@@ -191,39 +204,48 @@ private fun ProductionCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(production.recipeName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(production.recipeName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
-                        "Producido: ${production.quantity} ${if (production.quantity == 1) "Lote" else "Lotes"} (${totalUnits} unidades)",
+                        "Producido: $totalUnits u.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "Restante: $remaining unidades",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (remaining > 0) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
+                        "P. Venta: ${CurrencySymbol.current}${formatNumber(production.recipeSalePrice)} / u.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        "Ventas totales: ${CurrencySymbol.current}${formatNumber(totalSoldPrice)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         dateFormat.format(Date(production.productionDate)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
-                    Text(
-                        "Costo: ${CurrencySymbol.current} ${formatNumber(production.totalCost)}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
                 }
-                Column(horizontalAlignment = Alignment.End) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onAddBatch) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar lote",
-                            tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Agregar lote/Ajustar",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
-                    TextButton(onClick = onDelete) {
-                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
             }
@@ -279,6 +301,144 @@ private fun ProductionCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProductionDashboardDialog(
+    production: ProductionWithRecipe,
+    onDismiss: () -> Unit
+) {
+    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale("es", "PY")) }
+    val totalUnits = production.quantity * production.recipeServings
+    val remaining = totalUnits - production.sold
+
+    val unitCost = if (totalUnits > 0) production.totalCost / totalUnits else 0.0
+    val totalSoldPrice = production.sold * production.recipeSalePrice
+    val costOfGoodsSold = production.sold * unitCost
+    val actualProfit = totalSoldPrice - costOfGoodsSold
+
+    val potentialRevenue = totalUnits * production.recipeSalePrice
+    val potentialProfit = potentialRevenue - production.totalCost
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Column {
+                Text(
+                    text = production.recipeName,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = dateFormat.format(Date(production.productionDate)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Producción",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DashboardMetricRow(
+                        label1 = "Lotes Producidos", value1 = "${production.quantity}",
+                        label2 = "Total Unidades", value2 = "$totalUnits u."
+                    )
+                    DashboardMetricRow(
+                        label1 = "Unidades Vendidas", value1 = "${production.sold} u.",
+                        label2 = "Unidades Restantes", value2 = "$remaining u.",
+                        valueColor2 = if (remaining > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
+
+                Text(
+                    "Finanzas",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DashboardMetricRow(
+                        label1 = "Costo Total", value1 = "${CurrencySymbol.current} ${formatNumber(production.totalCost)}",
+                        label2 = "Costo Unitario", value2 = "${CurrencySymbol.current} ${formatNumber(unitCost)}"
+                    )
+                    DashboardMetricRow(
+                        label1 = "Precio de Venta", value1 = "${CurrencySymbol.current} ${formatNumber(production.recipeSalePrice)} / u.",
+                        label2 = "Vendido Total", value2 = "${CurrencySymbol.current} ${formatNumber(totalSoldPrice)}"
+                    )
+                    DashboardMetricRow(
+                        label1 = "Ganancia Real", value1 = "${CurrencySymbol.current} ${formatNumber(actualProfit)}",
+                        valueColor1 = MaterialTheme.colorScheme.primary,
+                        label2 = "Ganancia Potencial", value2 = "${CurrencySymbol.current} ${formatNumber(potentialProfit)}",
+                        valueColor2 = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+                if (!production.notes.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Notas",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = production.notes,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
+}
+
+@Composable
+private fun DashboardMetricRow(
+    label1: String,
+    value1: String,
+    valueColor1: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
+    label2: String,
+    value2: String,
+    valueColor2: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(8.dp)
+        ) {
+            Text(label1, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value1, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = valueColor1)
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(8.dp)
+        ) {
+            Text(label2, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value2, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = valueColor2)
         }
     }
 }
