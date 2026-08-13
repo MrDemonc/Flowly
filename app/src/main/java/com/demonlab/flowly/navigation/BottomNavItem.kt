@@ -1,21 +1,23 @@
 package com.demonlab.flowly.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class BottomNavItem(val route: String, val title: String, val icon: ImageVector) {
-    data object Dashboard : BottomNavItem(Screen.Dashboard.route, "Inicio", Icons.Default.Home)
-    data object Inventory : BottomNavItem(Screen.Inventory.route, "Inventario", Icons.Default.Inventory2)
-    data object Recipes : BottomNavItem(Screen.Recipes.route, "Recetas", Icons.AutoMirrored.Filled.MenuBook)
-    data object Operations : BottomNavItem(Screen.Production.route, "Operaciones", Icons.Default.ShoppingCart)
-    data object Reports : BottomNavItem(Screen.Reports.route, "Reportes", Icons.Default.Assessment)
+sealed class BottomNavItem(
+    val route: String,
+    val title: String,
+    val icon: ImageVector
+) {
+    object Resumen : BottomNavItem(Screen.Resumen.route, "Resumen", Icons.Default.Analytics)
+    object Productos : BottomNavItem(Screen.Productos.route, "Productos", Icons.Default.ShoppingBag)
+    object Lotes : BottomNavItem(Screen.Lotes.route, "Lotes", Icons.Default.Layers)
+    object Ajustes : BottomNavItem(Screen.Ajustes.route, "Ajustes", Icons.Default.Settings)
 
     companion object {
-        val items = listOf(Dashboard, Inventory, Recipes, Operations, Reports)
+        val items = listOf(Resumen, Productos, Lotes, Ajustes)
     }
 }

@@ -4,71 +4,61 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "flowly_settings")
 
 class SettingsDataStore(private val context: Context) {
 
     companion object {
-        private val KEY_BUSINESS_NAME = stringPreferencesKey("business_name")
-        private val KEY_CURRENCY = stringPreferencesKey("currency")
-        private val KEY_DEFAULT_MARGIN = doublePreferencesKey("default_margin")
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
-        private val KEY_DYNAMIC_COLORS = booleanPreferencesKey("dynamic_colors")
-        private val KEY_IS_FIRST_RUN = booleanPreferencesKey("is_first_run")
-    }
-
-    val businessName: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[KEY_BUSINESS_NAME] ?: "Flowly"
-    }
-
-    val currency: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[KEY_CURRENCY] ?: "Gs"
-    }
-
-    val defaultMargin: Flow<Double> = context.dataStore.data.map { prefs ->
-        prefs[KEY_DEFAULT_MARGIN] ?: 30.0
+        private val KEY_CURRENCY_SYMBOL = stringPreferencesKey("currency_symbol")
+        private val KEY_NOTIFY_PENDING = booleanPreferencesKey("notify_pending")
+        private val KEY_LOCAL1_NAME = stringPreferencesKey("local1_name")
+        private val KEY_LOCAL2_NAME = stringPreferencesKey("local2_name")
     }
 
     val themeMode: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[KEY_THEME_MODE] ?: "system"
     }
 
-    val dynamicColors: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_DYNAMIC_COLORS] ?: true
+    val currencySymbol: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_CURRENCY_SYMBOL] ?: "$"
     }
 
-    val isFirstRun: Flow<Boolean> = context.dataStore.data.map { prefs ->
-        prefs[KEY_IS_FIRST_RUN] ?: true
+    val notifyPendingAccounts: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_NOTIFY_PENDING] ?: true
     }
 
-    suspend fun setBusinessName(name: String) {
-        context.dataStore.edit { it[KEY_BUSINESS_NAME] = name }
+    val local1Name: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_LOCAL1_NAME] ?: "Local 1"
     }
 
-    suspend fun setCurrency(currency: String) {
-        context.dataStore.edit { it[KEY_CURRENCY] = currency }
-    }
-
-    suspend fun setDefaultMargin(margin: Double) {
-        context.dataStore.edit { it[KEY_DEFAULT_MARGIN] = margin }
+    val local2Name: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_LOCAL2_NAME] ?: "Local 2"
     }
 
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { it[KEY_THEME_MODE] = mode }
     }
 
-    suspend fun setDynamicColors(enabled: Boolean) {
-        context.dataStore.edit { it[KEY_DYNAMIC_COLORS] = enabled }
+    suspend fun setCurrencySymbol(symbol: String) {
+        context.dataStore.edit { it[KEY_CURRENCY_SYMBOL] = symbol }
     }
 
-    suspend fun setIsFirstRun(value: Boolean) {
-        context.dataStore.edit { it[KEY_IS_FIRST_RUN] = value }
+    suspend fun setNotifyPendingAccounts(enabled: Boolean) {
+        context.dataStore.edit { it[KEY_NOTIFY_PENDING] = enabled }
+    }
+
+    suspend fun setLocal1Name(name: String) {
+        context.dataStore.edit { it[KEY_LOCAL1_NAME] = name }
+    }
+
+    suspend fun setLocal2Name(name: String) {
+        context.dataStore.edit { it[KEY_LOCAL2_NAME] = name }
     }
 }

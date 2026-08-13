@@ -4,52 +4,30 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.demonlab.flowly.data.local.dao.CategoryDao
-import com.demonlab.flowly.data.local.dao.ExpenseDao
-import com.demonlab.flowly.data.local.dao.IngredientDao
-import com.demonlab.flowly.data.local.dao.InventoryItemDao
-import com.demonlab.flowly.data.local.dao.ProductionDao
-import com.demonlab.flowly.data.local.dao.PurchaseDao
-import com.demonlab.flowly.data.local.dao.RecipeDao
-import com.demonlab.flowly.data.local.dao.SaleDao
-import com.demonlab.flowly.data.local.dao.SupplierDao
-import com.demonlab.flowly.data.local.entity.CategoryEntity
-import com.demonlab.flowly.data.local.entity.ExpenseEntity
-import com.demonlab.flowly.data.local.entity.IngredientEntity
-import com.demonlab.flowly.data.local.entity.InventoryItemEntity
-import com.demonlab.flowly.data.local.entity.ProductionEntity
-import com.demonlab.flowly.data.local.entity.PurchaseEntity
-import com.demonlab.flowly.data.local.entity.RecipeEntity
-import com.demonlab.flowly.data.local.entity.RecipeIngredientEntity
-import com.demonlab.flowly.data.local.entity.SaleEntity
-import com.demonlab.flowly.data.local.entity.SupplierEntity
+import com.demonlab.flowly.data.local.dao.BatchDao
+import com.demonlab.flowly.data.local.dao.BatchProductDao
+import com.demonlab.flowly.data.local.dao.BatchSaleDao
+import com.demonlab.flowly.data.local.dao.ProductDao
+import com.demonlab.flowly.data.local.entity.BatchEntity
+import com.demonlab.flowly.data.local.entity.BatchProductEntity
+import com.demonlab.flowly.data.local.entity.BatchSaleEntity
+import com.demonlab.flowly.data.local.entity.ProductEntity
 
 @Database(
     entities = [
-        InventoryItemEntity::class,
-        IngredientEntity::class,
-        RecipeEntity::class,
-        RecipeIngredientEntity::class,
-        ProductionEntity::class,
-        SaleEntity::class,
-        PurchaseEntity::class,
-        ExpenseEntity::class,
-        CategoryEntity::class,
-        SupplierEntity::class
+        ProductEntity::class,
+        BatchEntity::class,
+        BatchProductEntity::class,
+        BatchSaleEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun inventoryItemDao(): InventoryItemDao
-    abstract fun ingredientDao(): IngredientDao
-    abstract fun recipeDao(): RecipeDao
-    abstract fun productionDao(): ProductionDao
-    abstract fun saleDao(): SaleDao
-    abstract fun purchaseDao(): PurchaseDao
-    abstract fun expenseDao(): ExpenseDao
-    abstract fun categoryDao(): CategoryDao
-    abstract fun supplierDao(): SupplierDao
+    abstract fun productDao(): ProductDao
+    abstract fun batchDao(): BatchDao
+    abstract fun batchProductDao(): BatchProductDao
+    abstract fun batchSaleDao(): BatchSaleDao
 
     companion object {
         @Volatile
@@ -60,7 +38,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "flowly.db"
+                    "flowly_v2.db"
                 )
                     .fallbackToDestructiveMigration()
                     .build()
