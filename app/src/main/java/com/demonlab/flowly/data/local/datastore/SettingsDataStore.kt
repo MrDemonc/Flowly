@@ -18,6 +18,7 @@ class SettingsDataStore(private val context: Context) {
         private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         private val KEY_CURRENCY_SYMBOL = stringPreferencesKey("currency_symbol")
         private val KEY_NOTIFY_PENDING = booleanPreferencesKey("notify_pending")
+        private val KEY_LOCAL_COUNT = androidx.datastore.preferences.core.intPreferencesKey("local_count")
         private val KEY_LOCAL1_NAME = stringPreferencesKey("local1_name")
         private val KEY_LOCAL2_NAME = stringPreferencesKey("local2_name")
     }
@@ -32,6 +33,10 @@ class SettingsDataStore(private val context: Context) {
 
     val notifyPendingAccounts: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[KEY_NOTIFY_PENDING] ?: true
+    }
+
+    val localCount: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_LOCAL_COUNT] ?: 2
     }
 
     val local1Name: Flow<String> = context.dataStore.data.map { prefs ->
@@ -52,6 +57,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setNotifyPendingAccounts(enabled: Boolean) {
         context.dataStore.edit { it[KEY_NOTIFY_PENDING] = enabled }
+    }
+
+    suspend fun setLocalCount(count: Int) {
+        context.dataStore.edit { it[KEY_LOCAL_COUNT] = count }
     }
 
     suspend fun setLocal1Name(name: String) {

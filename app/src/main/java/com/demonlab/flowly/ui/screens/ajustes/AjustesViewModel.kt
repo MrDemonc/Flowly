@@ -14,6 +14,7 @@ data class AjustesUiState(
     val themeMode: String = "system",
     val currencySymbol: String = "$",
     val notifyPendingAccounts: Boolean = true,
+    val localCount: Int = 2,
     val local1Name: String = "Local 1",
     val local2Name: String = "Local 2"
 )
@@ -23,16 +24,22 @@ class AjustesViewModel(
 ) : ViewModel() {
 
     val uiState: StateFlow<AjustesUiState> = combine(
-        settingsDataStore.themeMode,
-        settingsDataStore.currencySymbol,
-        settingsDataStore.notifyPendingAccounts,
-        settingsDataStore.local1Name,
-        settingsDataStore.local2Name
-    ) { theme, currency, notify, l1, l2 ->
+        combine(
+            settingsDataStore.themeMode,
+            settingsDataStore.currencySymbol,
+            settingsDataStore.notifyPendingAccounts
+        ) { theme, currency, notify -> Triple(theme, currency, notify) },
+        combine(
+            settingsDataStore.localCount,
+            settingsDataStore.local1Name,
+            settingsDataStore.local2Name
+        ) { count, l1, l2 -> Triple(count, l1, l2) }
+    ) { (theme, currency, notify), (count, l1, l2) ->
         AjustesUiState(
             themeMode = theme,
             currencySymbol = currency,
             notifyPendingAccounts = notify,
+            localCount = count,
             local1Name = l1,
             local2Name = l2
         )
@@ -59,6 +66,12 @@ class AjustesViewModel(
     fun setNotifyPendingAccounts(enabled: Boolean) {
         viewModelScope.launch {
             settingsDataStore.setNotifyPendingAccounts(enabled)
+        }
+    }
+
+    fun setLocalCount(count: Int) {
+        viewModelScope.launch {
+            settingsDataStore.setLocalCount(count)
         }
     }
 

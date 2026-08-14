@@ -25,6 +25,7 @@ data class SelectedProductInput(
 
 data class LoteCreateUiState(
     val date: String = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()),
+    val localCount: Int = 2,
     val local1Name: String = "Local 1",
     val local2Name: String = "Local 2",
     val availableProducts: List<ProductEntity> = emptyList(),
@@ -47,17 +48,23 @@ class LoteCreateViewModel(
     init {
         viewModelScope.launch {
             val symbol = settingsDataStore.currencySymbol.first()
+            val count = settingsDataStore.localCount.first()
             val l1 = settingsDataStore.local1Name.first()
             val l2 = settingsDataStore.local2Name.first()
             val products = productRepository.productsFlow.first()
 
             _uiState.value = _uiState.value.copy(
                 currencySymbol = symbol,
+                localCount = count,
                 local1Name = l1,
                 local2Name = l2,
                 availableProducts = products
             )
         }
+    }
+
+    fun onLocalCountChange(newCount: Int) {
+        _uiState.value = _uiState.value.copy(localCount = newCount)
     }
 
     fun onDateChange(newDate: String) {
@@ -93,7 +100,8 @@ class LoteCreateViewModel(
 
             selectedProductsMap.forEach { (productId, quantities) ->
                 val (l1Qty, l2Qty) = quantities
-                if (l1Qty > 0 || l2Qty > 0) {
+                val finalL2Qty = if (state.localCount == 1) 0 else l2Qty
+                if (l1Qty > 0 || finalL2Qty > 0) {
                     val product = products.find { it.id == productId }
                     if (product != null) {
                         items.add(
@@ -102,7 +110,7 @@ class LoteCreateViewModel(
                                 productName = product.name,
                                 productPrice = product.price,
                                 local1Qty = l1Qty,
-                                local2Qty = l2Qty
+                                local2Qty = finalL2Qty
                             )
                         )
                     }
@@ -110,14 +118,14 @@ class LoteCreateViewModel(
             }
 
             if (items.isEmpty()) {
-                _uiState.value = state.copy(errorMessage = "Agregue al menos un producto a un local")
+                _uiState.value = state.copy(errorMessage = "Agregue al menos un producto con cantidad")
                 return@launch
             }
 
             val batchId = batchRepository.createBatch(
                 date = state.date.trim(),
                 local1Name = state.local1Name.ifBlank { "Local 1" },
-                local2Name = state.local2Name.ifBlank { "Local 2" },
+                local2Name = if (state.localCount == 1) "" else state.local2Name.ifBlank { "Local 2" },
                 items = items
             )
             _uiState.value = state.copy(isSuccess = true)

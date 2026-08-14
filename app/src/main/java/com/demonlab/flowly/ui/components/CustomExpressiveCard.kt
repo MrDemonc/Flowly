@@ -31,6 +31,7 @@ fun CustomExpressiveCard(
         colors = colors,
         modifier = modifier
             .fillMaxWidth()
+            .padding(vertical = 0.5.dp)
             .then(
                 if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
             )
@@ -38,7 +39,7 @@ fun CustomExpressiveCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             content = content
         )
     }

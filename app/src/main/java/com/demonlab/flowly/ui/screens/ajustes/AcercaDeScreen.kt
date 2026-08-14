@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -19,11 +18,14 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -37,30 +39,40 @@ import com.demonlab.flowly.ui.components.CustomExpressiveCard
 fun AcercaDeScreen(
     navController: NavController
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-    ) {
-        LargeTopAppBar(
-            title = {
-                Text(
-                    text = "Acerca de",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            },
-            navigationIcon = {
-                CircleBackButton(onBack = { navController.popBackStack() })
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        )
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        text = "Acerca de",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                navigationIcon = {
+                    CircleBackButton(
+                        onBack = { navController.popBackStack() }
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // App Header Card (Single)

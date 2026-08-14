@@ -18,10 +18,14 @@ data class LoteDetailUiState(
     val batch: BatchEntity? = null,
     val products: List<BatchProductEntity> = emptyList(),
     val sales: List<BatchSaleEntity> = emptyList(),
+    val fiados: List<BatchSaleEntity> = emptyList(),
     val totalPaid: Double = 0.0,
     val totalPending: Double = 0.0,
     val totalExpected: Double = 0.0,
     val remainingUnits: Int = 0,
+    val totalSoldUnits: Int = 0,
+    val pendingFiadosCount: Int = 0,
+    val localCount: Int = 2,
     val currencySymbol: String = "$"
 )
 
@@ -35,26 +39,36 @@ class LoteDetailViewModel(
         combine(
             batchRepository.getBatchByIdFlow(batchId),
             batchRepository.getProductsByBatchIdFlow(batchId),
-            batchRepository.getSalesByBatchIdFlow(batchId)
-        ) { batch, products, sales -> Triple(batch, products, sales) },
+            batchRepository.getSalesByBatchIdFlow(batchId),
+            batchRepository.getFiadosByBatchIdFlow(batchId)
+        ) { batch, products, sales, fiados ->
+            Quadruple(batch, products, sales, fiados)
+        },
         combine(
             batchRepository.getBatchPaidFlow(batchId),
             batchRepository.getBatchPendingFlow(batchId),
-            settingsDataStore.currencySymbol
-        ) { paid, pending, symbol -> Triple(paid, pending, symbol) }
-    ) { (batch, products, sales), (paid, pending, symbol) ->
+            settingsDataStore.currencySymbol,
+            settingsDataStore.localCount
+        ) { paid, pending, symbol, count -> Quadruple(paid, pending, symbol, count) }
+    ) { (batch, products, sales, fiados), (paid, pending, symbol, count) ->
         val paidAmount = paid ?: 0.0
         val pendingAmount = pending ?: 0.0
         val remaining = products.sumOf { it.local1CurrentQty + it.local2CurrentQty }
+        val sold = sales.sumOf { it.quantity }
+        val pendingFiados = fiados.count { !it.isPaid }
 
         LoteDetailUiState(
             batch = batch,
             products = products,
             sales = sales,
+            fiados = fiados,
             totalPaid = paidAmount,
             totalPending = pendingAmount,
             totalExpected = paidAmount + pendingAmount,
             remainingUnits = remaining,
+            totalSoldUnits = sold,
+            pendingFiadosCount = pendingFiados,
+            localCount = count,
             currencySymbol = symbol
         )
     }.stateIn(
@@ -75,7 +89,6 @@ class LoteDetailViewModel(
         local: String,
         quantity: Int,
         amountPaid: Double,
-        amountPending: Double,
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
@@ -84,9 +97,43 @@ class LoteDetailViewModel(
                 batchProductId = batchProductId,
                 local = local,
                 quantity = quantity,
-                amountPaid = amountPaid,
-                amountPending = amountPending
+                amountPaid = amountPaid
             )
+            onResult(success)
+        }
+    }
+
+    fun registerFiado(
+        batchProductId: Long,
+        local: String,
+        quantity: Int,
+        customerName: String,
+        totalAmount: Double,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            val success = batchRepository.registerFiado(
+                batchId = batchId,
+                batchProductId = batchProductId,
+                local = local,
+                quantity = quantity,
+                customerName = customerName,
+                totalAmount = totalAmount
+            )
+            onResult(success)
+        }
+    }
+
+    fun toggleFiadoPaid(saleId: Long, onResult: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val success = batchRepository.toggleFiadoPaid(saleId)
+            onResult(success)
+        }
+    }
+
+    fun deleteSale(saleId: Long, onResult: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            val success = batchRepository.deleteSale(saleId)
             onResult(success)
         }
     }
@@ -102,3 +149,5 @@ class LoteDetailViewModel(
         }
     }
 }
+
+private data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)

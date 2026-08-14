@@ -9,10 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
@@ -20,7 +18,6 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsSystemDaydream
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -28,7 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -40,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,47 +58,46 @@ fun AjustesScreen(
     )
 ) {
     val state by viewModel.uiState.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var currencyInput by remember(state.currencySymbol) { mutableStateOf(state.currencySymbol) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-    ) {
-        LargeTopAppBar(
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircleIconBox(
-                        icon = Icons.Default.Settings,
-                        contentDescription = "Ajustes",
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        iconTint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(modifier = Modifier.padding(6.dp))
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
+            LargeTopAppBar(
+                title = {
                     Text(
                         text = "Ajustes",
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
-        )
-
+        }
+    ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            // SECCIÓN A: PERSONALIZACIÓN
+            // ==================== SECCIÓN 1: PERSONALIZACIÓN ====================
             item {
                 Text(
                     text = "Personalización",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 6.dp, top = 4.dp)
                 )
             }
 
@@ -178,7 +175,7 @@ fun AjustesScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Usado para formatear los importes financieros",
+                                    text = "Formateo de importes financieros",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -200,14 +197,15 @@ fun AjustesScreen(
                 }
             }
 
-            // SECCIÓN B: NOTIFICACIONES
+            // ==================== SECCIÓN 2: NOTIFICACIONES ====================
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = "Notificaciones",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
                 )
             }
 
@@ -232,7 +230,7 @@ fun AjustesScreen(
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "Alertas preventivas de saldos pendientes en lotes activos",
+                                    text = "Alertas preventivas de saldos pendientes de cobro",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -247,14 +245,15 @@ fun AjustesScreen(
                 }
             }
 
-            // SECCIÓN C: ACERCA DE
+            // ==================== SECCIÓN 3: INFORMACIÓN ====================
             item {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = "Información",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
                 )
             }
 

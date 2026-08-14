@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -18,28 +21,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.demonlab.flowly.data.local.entity.BatchProductEntity
 
 @Composable
-fun RegisterSaleDialog(
+fun RegisterFiadoDialog(
     product: BatchProductEntity,
     local: String, // "LOCAL_1" or "LOCAL_2"
     localName: String,
     currencySymbol: String = "$",
     onDismiss: () -> Unit,
-    onConfirm: (quantity: Int, amountPaid: Double) -> Unit
+    onConfirm: (quantity: Int, customerName: String, totalAmount: Double) -> Unit
 ) {
     val availableQty = if (local == "LOCAL_1") product.local1CurrentQty else product.local2CurrentQty
+    var customerName by remember { mutableStateOf("") }
     var quantityText by remember { mutableStateOf("1") }
-    var paidText by remember { mutableStateOf(product.productPrice.toString()) }
+    var totalAmountText by remember { mutableStateOf(product.productPrice.toString()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(quantityText) {
         val qty = quantityText.toIntOrNull() ?: 0
         if (qty > 0) {
-            paidText = (qty * product.productPrice).toString()
+            totalAmountText = (qty * product.productPrice).toString()
         }
     }
 
@@ -47,7 +52,7 @@ fun RegisterSaleDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Vender al Contado ($localName)",
+                text = "Registrar Por Cobrar ($localName)",
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -67,12 +72,28 @@ fun RegisterSaleDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
+                    value = customerName,
+                    onValueChange = {
+                        customerName = it
+                        errorMessage = null
+                    },
+                    label = { Text("Nombre del cliente / titular *") },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Person, contentDescription = null)
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
                     value = quantityText,
                     onValueChange = {
                         quantityText = it
                         errorMessage = null
                     },
-                    label = { Text("Cantidad a vender") },
+                    label = { Text("Cantidad por cobrar") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
@@ -80,15 +101,22 @@ fun RegisterSaleDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
-                    value = paidText,
+                    value = totalAmountText,
                     onValueChange = {
-                        paidText = it
+                        totalAmountText = it
                         errorMessage = null
                     },
-                    label = { Text("Monto a recaudar ($currencySymbol)") },
+                    label = { Text("Monto total por cobrar ($currencySymbol)") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "ℹ️ Este importe se registrará en 'Por Cobrar' hasta que el cliente efectúe el pago.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                 )
 
                 errorMessage?.let {
@@ -105,20 +133,22 @@ fun RegisterSaleDialog(
             TextButton(
                 onClick = {
                     val qty = quantityText.toIntOrNull() ?: 0
-                    val paid = paidText.toDoubleOrNull() ?: 0.0
+                    val amount = totalAmountText.toDoubleOrNull() ?: 0.0
 
-                    if (qty <= 0) {
+                    if (customerName.isBlank()) {
+                        errorMessage = "Por favor ingrese el nombre del cliente"
+                    } else if (qty <= 0) {
                         errorMessage = "Ingrese una cantidad válida mayor a 0"
                     } else if (qty > availableQty) {
                         errorMessage = "La cantidad excede el stock disponible ($availableQty)"
-                    } else if (paid < 0) {
-                        errorMessage = "El monto no puede ser negativo"
+                    } else if (amount <= 0) {
+                        errorMessage = "El monto debe ser mayor a 0"
                     } else {
-                        onConfirm(qty, paid)
+                        onConfirm(qty, customerName.trim(), amount)
                     }
                 }
             ) {
-                Text("Confirmar Venta")
+                Text("Registrar Por Cobrar")
             }
         },
         dismissButton = {

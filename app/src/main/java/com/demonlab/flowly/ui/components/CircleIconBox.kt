@@ -9,7 +9,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,17 +79,23 @@ fun CircleIconButton(
 fun CircleBackButton(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    iconTint: Color = MaterialTheme.colorScheme.onSecondaryContainer
+    containerColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+    iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
-    CircleIconButton(
-        icon = Icons.AutoMirrored.Filled.ArrowBack,
-        contentDescription = "Volver",
-        onClick = onBack,
-        modifier = modifier,
-        containerColor = containerColor,
-        iconTint = iconTint,
-        circleSize = 40.dp,
-        iconSize = 20.dp
-    )
+    IconButton(onClick = onBack, modifier = modifier) {
+        Surface(
+            shape = CircleShape,
+            color = containerColor,
+            modifier = Modifier.size(40.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = iconTint,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+        }
+    }
 }

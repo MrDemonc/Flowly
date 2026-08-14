@@ -1,7 +1,6 @@
 package com.demonlab.flowly.navigation
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -9,6 +8,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -47,12 +47,8 @@ fun FlowlyNavGraph(app: FlowlyApp) {
     val currentDestination = navBackStackEntry?.destination
     val showBottomBar = currentDestination?.route in topLevelRoutes
 
-    val bounceSpec = spring<Float>(
-        stiffness = Spring.StiffnessLow,
-        dampingRatio = Spring.DampingRatioMediumBouncy
-    )
-
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -81,16 +77,10 @@ fun FlowlyNavGraph(app: FlowlyApp) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            enterTransition = {
-                fadeIn(animationSpec = bounceSpec) + slideInHorizontally(
-                    animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)
-                ) { it / 4 }
-            },
-            exitTransition = {
-                fadeOut(animationSpec = bounceSpec) + slideOutHorizontally(
-                    animationSpec = spring(stiffness = Spring.StiffnessLow, dampingRatio = Spring.DampingRatioMediumBouncy)
-                ) { -it / 4 }
-            }
+            enterTransition = { fadeIn(animationSpec = tween(120)) },
+            exitTransition = { fadeOut(animationSpec = tween(120)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(120)) },
+            popExitTransition = { fadeOut(animationSpec = tween(120)) }
         ) {
             composable(Screen.Resumen.route) {
                 ResumenScreen(app = app, navController = navController)
@@ -101,12 +91,22 @@ fun FlowlyNavGraph(app: FlowlyApp) {
             composable(Screen.Lotes.route) {
                 LotesScreen(app = app, navController = navController)
             }
-            composable(Screen.LoteCreate.route) {
+            composable(
+                Screen.LoteCreate.route,
+                enterTransition = { slideInHorizontally(tween(200)) { it } + fadeIn(tween(150)) },
+                exitTransition = { slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(150)) },
+                popEnterTransition = { slideInHorizontally(tween(200)) { -it } + fadeIn(tween(150)) },
+                popExitTransition = { slideOutHorizontally(tween(200)) { it } + fadeOut(tween(150)) }
+            ) {
                 LoteCreateScreen(app = app, navController = navController)
             }
             composable(
                 Screen.LoteDetail.route,
-                arguments = listOf(navArgument("batchId") { type = NavType.LongType })
+                arguments = listOf(navArgument("batchId") { type = NavType.LongType }),
+                enterTransition = { slideInHorizontally(tween(200)) { it } + fadeIn(tween(150)) },
+                exitTransition = { slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(150)) },
+                popEnterTransition = { slideInHorizontally(tween(200)) { -it } + fadeIn(tween(150)) },
+                popExitTransition = { slideOutHorizontally(tween(200)) { it } + fadeOut(tween(150)) }
             ) { backStackEntry ->
                 val batchId = backStackEntry.arguments?.getLong("batchId") ?: 0L
                 LoteDetailScreen(batchId = batchId, app = app, navController = navController)
@@ -114,7 +114,13 @@ fun FlowlyNavGraph(app: FlowlyApp) {
             composable(Screen.Ajustes.route) {
                 AjustesScreen(app = app, navController = navController)
             }
-            composable(Screen.AcercaDe.route) {
+            composable(
+                Screen.AcercaDe.route,
+                enterTransition = { slideInHorizontally(tween(200)) { it } + fadeIn(tween(150)) },
+                exitTransition = { slideOutHorizontally(tween(200)) { -it } + fadeOut(tween(150)) },
+                popEnterTransition = { slideInHorizontally(tween(200)) { -it } + fadeIn(tween(150)) },
+                popExitTransition = { slideOutHorizontally(tween(200)) { it } + fadeOut(tween(150)) }
+            ) {
                 AcercaDeScreen(navController = navController)
             }
         }

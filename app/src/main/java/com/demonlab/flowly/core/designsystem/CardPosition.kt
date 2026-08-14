@@ -15,8 +15,8 @@ enum class CardPosition {
 object ExpressiveShapes {
     fun getGroupedShape(
         position: CardPosition,
-        largeCorner: Dp = 24.dp,
-        smallCorner: Dp = 6.dp
+        largeCorner: Dp = 20.dp,
+        smallCorner: Dp = 3.dp
     ): Shape {
         return when (position) {
             CardPosition.SINGLE -> RoundedCornerShape(largeCorner)
