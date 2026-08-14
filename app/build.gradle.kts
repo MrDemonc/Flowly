@@ -8,11 +8,16 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val keystorePropertiesFile = rootProject.file("app/keystore.properties")
-val keystoreProperties = Properties()
-val hasKeystore = keystorePropertiesFile.exists()
+val keystorePropertiesFile = listOf(
+    file("keystore.properties"),
+    rootProject.file("app/keystore.properties"),
+    rootProject.file("keystore.properties")
+).firstOrNull { it.exists() }
 
-if (hasKeystore) {
+val keystoreProperties = Properties()
+val hasKeystore = keystorePropertiesFile != null
+
+if (hasKeystore && keystorePropertiesFile != null) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
@@ -29,9 +34,15 @@ android {
     }
 
     signingConfigs {
-        if (hasKeystore) {
+        if (hasKeystore && keystorePropertiesFile != null) {
             create("release") {
-                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                val storePath = keystoreProperties.getProperty("storeFile") ?: "keystore.jks"
+                val resolvedStore = file(storePath).takeIf { it.exists() }
+                    ?: keystorePropertiesFile.parentFile.resolve(storePath).takeIf { it.exists() }
+                    ?: rootProject.file(storePath).takeIf { it.exists() }
+                    ?: file(storePath)
+
+                storeFile = resolvedStore
                 storePassword = keystoreProperties.getProperty("storePassword")
                 keyAlias = keystoreProperties.getProperty("keyAlias")
                 keyPassword = keystoreProperties.getProperty("keyPassword")

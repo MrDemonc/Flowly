@@ -11,5 +11,9 @@ local.properties
 /app/build
 
 # Keystore y credenciales de firma
+*.jks
+*.keystore
+keystore.properties
 /app/keystore.jks
 /app/keystore.properties
+
